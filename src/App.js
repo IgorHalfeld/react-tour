@@ -44,6 +44,12 @@ class App extends Component {
     }
   }
 
+  handleSearch = (event) => {
+    if (event.key === 'Enter') {
+      this.searchGifs()
+    }
+  }
+
   parseGiphyResponse = ({ data }) =>
     data.map((currentGif) => currentGif.images.fixed_width)
 
@@ -63,6 +69,7 @@ class App extends Component {
             className="searchbar--input"
             name="q"
             onChange={this.changeValue}
+            onKeyUp={this.handleSearch}
           />
           <button className="searchbar--button" onClick={this.searchGifs}>Search</button>
           <select className="searchbar--limit" name="limit" onChange={this.changeValue}>
