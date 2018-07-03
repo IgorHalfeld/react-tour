@@ -10,6 +10,9 @@ const HTTPClient = axios.create({
   }
 })
 
+const parseGiphyResponse = ({ data }) =>
+  data.map((currentGif) => currentGif.images.fixed_width)
+
 class App extends Component {
   constructor () {
     super()
@@ -18,26 +21,13 @@ class App extends Component {
       limit: 5,
       gifs: []
     }
-    this.loadTrendingGifs()
+    this.callGiphyAPI({ path: '/trending', params: { limit: this.state.limit } })
   }
 
-  async loadTrendingGifs () {
-    const params = { limit: this.state.limit }
+  callGiphyAPI = async ({ path, params }) => {
     try {
-      const { data: trendingReponse } = await HTTPClient.get('/trending', { params })
-      const gifsFormated = this.parseGiphyResponse(trendingReponse)
-      this.setState({ gifs: gifsFormated })
-    } catch (responseError) {
-      console.log('* Something happen..', responseError)
-    }
-  }
-
-  searchGifs = async () => {
-    const params = { limit: this.state.limit, q: this.state.q }
-    try {
-      const { data: searchResponse } = await HTTPClient.get('/search', { params })
-      const gifsFormated = this.parseGiphyResponse(searchResponse)
-      this.gifs = gifsFormated
+      const { data: trendingReponse } = await HTTPClient.get(path, { params })
+      const gifsFormated = parseGiphyResponse(trendingReponse)
       this.setState({ gifs: gifsFormated })
     } catch (responseError) {
       console.log('* Something happen..', responseError)
@@ -46,12 +36,9 @@ class App extends Component {
 
   handleSearch = (event) => {
     if (event.key === 'Enter') {
-      this.searchGifs()
+      this.callGiphyAPI({ path: '/search', params: { limit: this.state.limit, q: this.state.q } })
     }
   }
-
-  parseGiphyResponse = ({ data }) =>
-    data.map((currentGif) => currentGif.images.fixed_width)
 
   changeValue = (event) =>
     this.setState({ [event.target.name]: event.target.value })
@@ -71,7 +58,10 @@ class App extends Component {
             onChange={this.changeValue}
             onKeyUp={this.handleSearch}
           />
-          <button className="searchbar--button" onClick={this.searchGifs}>Search</button>
+          <button
+            className="searchbar--button"
+            onClick={this.callGiphyAPI.bind(this, { path: '/search', params: { limit: this.state.limit, q: this.state.q } })}
+          >Search</button>
           <select className="searchbar--limit" name="limit" onChange={this.changeValue}>
             <option value="5">05 gifs</option>
             <option value="10">10 gifs</option>
